@@ -1,0 +1,54 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex">
+<meta name="theme-color" content="#08130f">
+<title>Admin - MIRPURIAN</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:wght@600;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/style.css">
+</head>
+<body>
+<header>
+  <a class="logo" href="/">MIRPURIAN<i></i></a>
+  <button id="out" class="btn ghost" hidden>Log out</button>
+</header>
+<main class="narrow">
+  <form id="login" class="panel">
+    <h2>Admin login</h2>
+    <input id="pw" type="password" placeholder="Password" autocomplete="current-password" required>
+    <button class="btn">Log in</button>
+    <p id="lerr" class="err"></p>
+  </form>
+  <div id="app" hidden>
+    <section class="panel">
+      <h2>Upload files</h2>
+      <form id="up">
+        <input id="file" type="file" multiple required>
+        <input id="title" placeholder="Title (blank uses the file name)">
+        <select id="sec" aria-label="Section"></select>
+        <input id="subj" placeholder="Subject, e.g. Physics">
+        <textarea id="desc" placeholder="Description (optional)"></textarea>
+        <label class="chk"><input id="pin" type="checkbox"> Pin to top</label>
+        <button class="btn">Upload</button>
+        <p id="st" class="muted"></p>
+      </form>
+    </section>
+    <section class="panel">
+      <h2>Sections</h2>
+      <div id="secs"></div>
+      <button id="addsec" class="btn ghost" type="button">Add section</button>
+      <button id="savesec" class="btn" type="button">Save sections</button>
+    </section>
+    <section class="panel">
+      <h2>Posts</h2>
+      <div id="list"></div>
+    </section>
+  </div>
+</main>
+<script type="module" src="/admin.js"></script>
+</body>
+</html>
