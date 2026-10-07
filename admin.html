@@ -47,6 +47,25 @@
       <h2>Posts</h2>
       <div id="list"></div>
     </section>
+    <section class="panel">
+      <h2>Stats</h2>
+      <div id="stats" class="muted"></div>
+    </section>
+    <section class="panel">
+      <h2>Ads (32:9 banners)</h2>
+      <form id="adform">
+        <input id="adfile" type="file" accept="image/*" multiple required>
+        <button class="btn">Upload ads</button>
+        <p id="adst" class="muted"></p>
+      </form>
+      <div id="ads"></div>
+    </section>
+    <section class="panel">
+      <h2>Comments</h2>
+      <div id="cms"></div>
+      <h2>Blocked devices</h2>
+      <div id="bans"></div>
+    </section>
   </div>
 </main>
 <script type="module" src="/admin-ui.js"></script>

@@ -40,3 +40,13 @@ footer{text-align:center;color:var(--mut);font-size:13px;padding:32px 16px}
 .chk{display:flex;gap:8px;align-items:center;margin-bottom:10px}
 .chk input{width:auto;margin:0}
 @media (prefers-reduced-motion:reduce){*{transition:none!important}}
+.ad{aspect-ratio:32/9;width:calc(100% - 32px);max-width:1068px;margin:12px auto 0;overflow:hidden;border-radius:10px;border:1px solid var(--line);background:var(--panel)}
+.ad img{width:100%;height:100%;object-fit:cover;display:block}
+.adt{width:128px;flex:none;aspect-ratio:32/9;object-fit:cover;border-radius:6px}
+.pv{width:100%;max-height:360px;object-fit:contain;background:#0a1612;border-radius:10px;margin-bottom:12px}
+.desc{margin:8px 0;overflow-wrap:anywhere}
+.cm{border-bottom:1px solid var(--line);padding:8px 0}
+.cm p{overflow-wrap:anywhere}
+main h2{font:800 22px "Bricolage Grotesque",system-ui,sans-serif}
+.panel h2:not(:first-child){margin-top:16px}
+h3{margin:16px 0 8px}

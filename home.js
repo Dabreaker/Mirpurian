@@ -11,7 +11,7 @@ function card(p) {
   const e = ext(p);
   const sec = sections.find((s) => s.slug === p.section);
   const th = p.thumb ? `<img src="${esc(p.thumb)}" alt="" loading="lazy">` : `<span class="ico">${ICONS[e] || '📎'}</span>`;
-  return `<a class="card" href="${esc(p.url)}" target="_blank" rel="noopener">
+  return `<a class="card" href="/post?id=${esc(p.id)}">
     <div class="th">${th}${p.pinned ? '<b class="pin" title="Pinned"></b>' : ''}</div>
     <h3>${esc(p.title)}</h3>
     <div class="meta"><span class="tag">${esc(sec ? sec.name : p.section)}</span>${p.subject ? `<span>${esc(p.subject)}</span>` : ''}</div>

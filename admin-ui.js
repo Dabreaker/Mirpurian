@@ -11,7 +11,7 @@ let sections = [], posts = [];
 async function boot() {
   const { admin } = await api('/api/admin/login');
   $('#login').hidden = admin; $('#app').hidden = !admin; $('#out').hidden = !admin;
-  if (admin) { await loadSections(); await loadPosts(); }
+  if (admin) { await loadSections(); await loadPosts(); loadAds(); loadComments(); loadStats(); }
 }
 $('#login').onsubmit = async (e) => {
   e.preventDefault();
@@ -99,5 +99,61 @@ $('#list').onclick = async (e) => {
     loadPosts();
   } catch (x) { alert(x.message); }
 };
+
+/* ---------- ads ---------- */
+async function loadAds() {
+  const ads = await api('/api/ads');
+  $('#ads').innerHTML = ads.map((a) => `<div class="row"><img class="adt" src="${esc(a.url)}" alt=""><span class="t">${esc(a.name)}</span><button class="btn ghost" data-url="${esc(a.url)}">Delete</button></div>`).join('') || '<p class="muted">No ads yet. Upload some above.</p>';
+}
+$('#ads').onclick = async (e) => {
+  const u = e.target.dataset.url;
+  if (!u || !confirm('Delete this ad?')) return;
+  try { await api('/api/ads?url=' + encodeURIComponent(u), 'DELETE'); loadAds(); } catch (x) { alert(x.message); }
+};
+$('#adform').onsubmit = async (e) => {
+  e.preventDefault();
+  const st = $('#adst');
+  for (const f of [...$('#adfile').files]) {
+    try {
+      let ok = true;
+      try { const b = await createImageBitmap(f); ok = Math.abs(b.width / b.height - 32 / 9) < 0.4; } catch {}
+      if (!ok && !confirm(`${f.name} is not 32:9. Upload anyway?`)) continue;
+      st.textContent = 'Uploading ' + f.name;
+      await upload('ads/' + f.name, f, { access: 'public', handleUploadUrl: '/api/admin/upload' });
+    } catch (x) { st.textContent = 'Failed: ' + x.message; return; }
+  }
+  st.textContent = 'Done.'; e.target.reset(); loadAds();
+};
+
+/* ---------- comments + blocked devices ---------- */
+async function loadComments() {
+  const [cs, bans] = await Promise.all([api('/api/admin/comments'), api('/api/admin/bans')]);
+  const title = (pid) => (posts.find((p) => p.id === pid) || {}).title || pid;
+  $('#cms').innerHTML = cs.map((c) => `<div class="row" data-p="${esc(c.pid)}" data-c="${esc(c.id)}" data-d="${esc(c.dev)}"><span class="t"><b>${esc(c.name)}</b> on ${esc(title(c.pid))}<small>${esc(c.text)}</small></span><button class="btn ghost" data-a="del">Delete</button><button class="btn ghost" data-a="ban">Block</button></div>`).join('') || '<p class="muted">No comments yet.</p>';
+  $('#bans').innerHTML = bans.map((d) => `<div class="row"><span class="t">${esc(d)}</span><button class="btn ghost" data-un="${esc(d)}">Unblock</button></div>`).join('') || '<p class="muted">None.</p>';
+}
+$('#cms').onclick = async (e) => {
+  const a = e.target.dataset.a;
+  if (!a) return;
+  const r = e.target.closest('.row').dataset;
+  try {
+    if (a === 'del') await api(`/api/admin/comments?pid=${encodeURIComponent(r.p)}&cid=${encodeURIComponent(r.c)}`, 'DELETE');
+    else if (r.d && confirm('Block this device from commenting and reacting?')) await api('/api/admin/bans', 'POST', { dev: r.d });
+    loadComments();
+  } catch (x) { alert(x.message); }
+};
+$('#bans').onclick = async (e) => {
+  const d = e.target.dataset.un;
+  if (!d) return;
+  await api('/api/admin/bans?dev=' + encodeURIComponent(d), 'DELETE');
+  loadComments();
+};
+
+/* ---------- stats ---------- */
+async function loadStats() {
+  const s = await api('/api/admin/stats');
+  const top = posts.map((p) => ({ t: p.title, v: Number(s.views[p.id]) || 0, d: Number(s.dl[p.id]) || 0 })).sort((a, b) => b.v - a.v).slice(0, 5);
+  $('#stats').innerHTML = `<p>${s.posts} files, ${s.comments} comments, ${s.totalViews} views, ${s.totalDl} downloads</p>` + top.map((t) => `<div class="row"><span class="t">${esc(t.t)}</span><small>${t.v} views, ${t.d} downloads</small></div>`).join('');
+}
 
 boot();
