@@ -48,11 +48,12 @@ app.delete('/api/admin/login', (req, res) => {
   res.json({ ok: true });
 });
 app.post('/api/admin/login', async (req, res) => {
-  const ip = String(req.headers['x-forwarded-for'] || 'x').split(',')[0].trim();
-  const key = `rl:login:${ip}`;
-  const n = await redis.incr(key);
-  if (n === 1) await redis.expire(key, 600);
-  if (n > 10) return res.status(429).json({ error: 'Too many attempts. Try again in 10 minutes.' });
+  try {
+    const key = `rl:login:${String(req.headers['x-forwarded-for'] || 'x').split(',')[0].trim()}`;
+    const n = await redis.incr(key);
+    if (n === 1) await redis.expire(key, 600);
+    if (n > 10) return res.status(429).json({ error: 'Too many attempts. Try again in 10 minutes.' });
+  } catch (e) { console.error('login rate limit skipped:', e.message); }
 
   const real = process.env.ADMIN_PASSWORD || '';
   if (!real || !safeEq(String(req.body?.password || ''), real)) return res.status(401).json({ error: 'Wrong password' });
@@ -269,9 +270,22 @@ app.get('/api/admin/stats', admin, async (req, res) => {
   res.json({ posts, comments, views: views || {}, dl: dl || {}, totalViews: sum(views), totalDl: sum(dl) });
 });
 
+/* open /api/health in a browser to see what is connected (no secrets shown) */
+app.get('/api/health', async (req, res) => {
+  const out = {
+    ADMIN_PASSWORD: !!process.env.ADMIN_PASSWORD,
+    BLOB_READ_WRITE_TOKEN: !!process.env.BLOB_READ_WRITE_TOKEN,
+    REDIS_URL: !!(process.env.UPSTASH_REDIS_REST_URL || process.env.KV_REST_API_URL),
+    REDIS_TOKEN: !!(process.env.UPSTASH_REDIS_REST_TOKEN || process.env.KV_REST_API_TOKEN),
+  };
+  try { await redis.ping(); out.redisWorks = true; } catch (e) { out.redisWorks = false; out.redisError = String(e.message).slice(0, 120); }
+  try { await list({ limit: 1 }); out.blobWorks = true; } catch (e) { out.blobWorks = false; out.blobError = String(e.message).slice(0, 120); }
+  res.set('Cache-Control', 'no-store').json(out);
+});
+
 app.use((err, req, res, next) => {
   console.error(err);
-  res.status(500).json({ error: 'Server error' });
+  res.status(500).json({ error: 'Server error: ' + String(err.message || err).slice(0, 160) });
 });
 
 if (!process.env.VERCEL) app.listen(process.env.PORT || 3000, () => console.log('http://localhost:3000'));
